@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Gestión de Turnos Municipal</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Navigation (For demo purposes to switch views easily) -->
+  <nav class="app-nav" id="app-nav">
+    <a href="#/totem" class="nav-link" data-target="view-totem">Tótem Ciudadano</a>
+    <a href="#/hall" class="nav-link" data-target="view-hall">Pantalla Salón</a>
+    <a href="#/operator" class="nav-link" data-target="view-operator">Panel Operador</a>
+    <a href="#/admin" class="nav-link" data-target="view-admin">Dashboard Admin</a>
+    <button id="btn-logout" class="btn btn-danger hidden" style="padding: 0.5rem 1rem; margin-left: auto;">Cerrar Sesión</button>
+  </nav>
+
+  <!-- 0. VIEW: LOGIN -->
+  <section id="view-login" class="view hidden">
+    <div class="login-container card" style="max-width: 400px; margin: 5rem auto; text-align: center;">
+      <h2 style="color: var(--primary-color); margin-bottom: 2rem;">Iniciar Sesión</h2>
+      <form id="login-form">
+        <div style="margin-bottom: 1rem; text-align: left;">
+          <label style="display: block; margin-bottom: 0.5rem;">Usuario</label>
+          <input type="text" id="login-username" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: var(--border-radius);" placeholder="admin o operador" required>
+        </div>
+        <div style="margin-bottom: 2rem; text-align: left;">
+          <label style="display: block; margin-bottom: 0.5rem;">Contraseña</label>
+          <input type="password" id="login-password" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: var(--border-radius);" placeholder="admin o operador" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Ingresar</button>
+        <p id="login-error" style="color: var(--danger-color); margin-top: 1rem; display: none;">Credenciales incorrectas</p>
+      </form>
+      <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--secondary-color);">
+        <strong>admin</strong> / <strong>admin</strong><br>
+        <strong>operador</strong> / <strong>operador</strong><br>
+        <strong>operador1</strong> / <strong>operador1</strong> (Auto-login Tránsito Box 1)
+      </p>
+    </div>
+  </section>
+
+  <!-- 1. VIEW: TÓTEM CIUDADANO -->
+  <section id="view-totem" class="view active">
+    <div class="totem-container">
+      <header class="totem-header">
+        <h1>Bienvenido al Municipio</h1>
+        <p>Por favor, ingrese sus datos y seleccione el área de su trámite</p>
+      </header>
+      
+      <div id="totem-user-data" class="card" style="max-width: 500px; margin: 0 auto 2rem; text-align: left;">
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Nombre y Apellido</label>
+          <input type="text" id="totem-name" style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: var(--border-radius);" placeholder="Ej. Juan Pérez" required>
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">DNI</label>
+          <input type="number" id="totem-dni" style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: var(--border-radius);" placeholder="Ej. 12345678" required>
+        </div>
+      </div>
+
+      <div class="totem-actions" id="totem-areas-container">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- Ticket Modal Modal -->
+      <div id="ticket-modal" class="modal hidden">
+        <div class="modal-content ticket-print">
+          <h2>Su turno es:</h2>
+          <h1 id="ticket-number-display" class="ticket-big-number">--</h1>
+          <h3 id="ticket-user-display" style="color: var(--secondary-color); margin-bottom: 1rem;">--</h3>
+          <p>Por favor, aguarde a ser llamado en la pantalla.</p>
+          <button id="close-ticket-btn" class="btn btn-primary mt-4">Aceptar</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. VIEW: PANEL DE OPERADOR -->
+  <section id="view-operator" class="view hidden">
+    <div class="operator-container">
+      <header class="operator-header">
+        <div>
+          <h2 style="display: inline-block; margin-right: 1rem;">Panel de Operación</h2>
+          <span id="operator-box-status" style="background: var(--danger-color); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; vertical-align: middle;">INACTIVO</span>
+        </div>
+        <div class="operator-config">
+          <select id="operator-area-select">
+            <option value="">Seleccione Área...</option>
+          </select>
+          <select id="operator-box-select">
+            <option value="">Seleccione Box...</option>
+          </select>
+          <button id="btn-toggle-session" class="btn btn-success" disabled>Iniciar Jornada</button>
+        </div>
+      </header>
+
+      <div class="operator-main">
+        <div class="operator-current-ticket card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div style="text-align: left;">
+              <h3 style="color: var(--secondary-color); font-size: 1rem; text-transform: uppercase;">Estado del Turno</h3>
+              <h1 id="operator-active-ticket" style="font-size: 3.5rem; margin: 0.5rem 0; line-height: 1;">--</h1>
+              <div id="operator-previous-observation" style="display: none; background-color: #fff3cd; color: #856404; padding: 0.75rem; border-radius: 4px; border: 1px solid #ffeeba; font-size: 0.9rem; margin-top: 1rem; max-width: 100%;">
+                <strong>Historial de Notas:</strong> <span id="operator-previous-observation-text"></span>
+              </div>
+            </div>
+            <button id="btn-call-next" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem; box-shadow: var(--shadow-md);" disabled>Llamar Siguiente >></button>
+          </div>
+
+          <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid #eee;">
+
+          <div style="text-align: left;">
+            <div class="operator-observation">
+              <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Observaciones del Trámite:</label>
+              <textarea id="operator-observation-input" rows="3" style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: var(--border-radius); resize: vertical; font-family: var(--font-base);" placeholder="Opcional. Escriba detalles sobre el trámite..." disabled></textarea>
+            </div>
+
+            <div class="operator-actions mt-4" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+              <button id="btn-attend" class="btn btn-success" style="flex: 1;" disabled>Comenzar Atención</button>
+              <button id="btn-finish" class="btn btn-danger" style="flex: 1;" disabled>Finalizar Turno</button>
+            </div>
+            
+            <div class="derive-section mt-4" style="background-color: var(--bg-color); padding: 1rem; border-radius: var(--border-radius); border: 1px dashed #ccc;">
+              <h4 style="margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--secondary-color);">Opción: Derivar turno a otra área</h4>
+              <div style="display: flex; gap: 10px;">
+                <select id="operator-derive-select" style="flex: 2;">
+                  <option value="">Seleccione Área...</option>
+                </select>
+                <button id="btn-derive" class="btn btn-secondary" style="flex: 1;" disabled>Derivar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="operator-queue card">
+          <h3>Cola en Espera (<span id="queue-count">0</span>)</h3>
+          <ul id="operator-queue-list" class="queue-list">
+            <!-- Rendered via JS -->
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. VIEW: PANTALLA DE SALÓN -->
+  <section id="view-hall" class="view hidden">
+    <div class="hall-container">
+      <div class="hall-main card" id="hall-main-display">
+        <h2 class="hall-title">Turno Actual</h2>
+        <h1 id="hall-current-ticket" class="hall-big-number">--</h1>
+        <h2 id="hall-current-box" class="hall-box">--</h2>
+      </div>
+
+      <aside class="hall-sidebar card">
+        <h3>Últimos Llamados</h3>
+        <ul id="hall-history-list" class="hall-history">
+          <!-- Rendered via JS -->
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 4. VIEW: DASHBOARD ADMIN -->
+  <section id="view-admin" class="view hidden">
+    <div class="admin-container">
+      <header class="admin-header">
+        <h2>Dashboard de Métricas</h2>
+        <button id="btn-refresh-admin" class="btn btn-secondary">Actualizar Datos</button>
+      </header>
+
+      <div class="admin-stats grid">
+        <div class="card stat-card">
+          <h3>Total Turnos Hoy</h3>
+          <p id="admin-total-turnos" class="stat-number">0</p>
+        </div>
+        <div class="card stat-card">
+          <h3>Tiempo Promedio de Espera</h3>
+          <p id="admin-avg-wait" class="stat-number">0 min</p>
+        </div>
+        <div class="card stat-card">
+          <h3>Tiempo Promedio de Atención</h3>
+          <p id="admin-avg-attend" class="stat-number">0 min</p>
+        </div>
+      </div>
+
+      <div class="admin-charts grid mt-4">
+        <div class="card">
+          <h3>Distribución por Área</h3>
+          <div id="admin-area-bars" class="bar-chart">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+        
+        <div class="card">
+          <h3>Estado de Boxes</h3>
+          <div id="admin-box-status" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <div class="card" style="grid-column: 1 / -1;">
+          <h3>Rendimiento por Operador / Box (Hoy)</h3>
+          <div style="overflow-x: auto; margin-top: 1rem;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Operador / Box</th>
+                  <th>Turnos Atendidos</th>
+                  <th>Tiempo de Espera Prom.</th>
+                  <th>Tiempo de Atención Prom.</th>
+                </tr>
+              </thead>
+              <tbody id="admin-operator-metrics-body">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="grid-column: 1 / -1;">
+          <h3>Detalles de la Jornada</h3>
+          <div style="overflow-x: auto; margin-top: 1rem;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Turno</th>
+                  <th>Área</th>
+                  <th>Box</th>
+                  <th>Estado</th>
+                  <th>Creación</th>
+                  <th>Llamado</th>
+                </tr>
+              </thead>
+              <tbody id="admin-table-body">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
