@@ -148,18 +148,26 @@
   <!-- 3. VIEW: PANTALLA DE SALÓN -->
   <section id="view-hall" class="view hidden">
     <div class="hall-container">
-      <div class="hall-main card" id="hall-main-display">
-        <h2 class="hall-title">Turno Actual</h2>
-        <h1 id="hall-current-ticket" class="hall-big-number">--</h1>
-        <h2 id="hall-current-box" class="hall-box">--</h2>
-      </div>
+      <header class="hall-header-sim">
+        <div>
+          <h1>MUNICIPALIDAD COLONIA CAROYA</h1>
+        </div>
+        <div id="clock" class="clock">00:00:00</div>
+      </header>
+      <div class="hall-content">
+        <div class="hall-main" id="hall-main-display">
+          <h2 class="hall-title">Turno Actual</h2>
+          <h1 id="hall-current-ticket" class="hall-big-number">--</h1>
+          <h2 id="hall-current-box" class="hall-box">--</h2>
+        </div>
 
-      <aside class="hall-sidebar card">
-        <h3>Últimos Llamados</h3>
-        <ul id="hall-history-list" class="hall-history">
-          <!-- Rendered via JS -->
-        </ul>
-      </aside>
+        <aside class="hall-sidebar">
+          <h3>Últimos Llamados</h3>
+          <ul id="hall-history-list" class="hall-history">
+            <!-- Rendered via JS -->
+          </ul>
+        </aside>
+      </div>
     </div>
   </section>
 

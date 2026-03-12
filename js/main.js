@@ -48,6 +48,14 @@ function init() {
   } else {
     handleRoute();
   }
+
+  // Real-time clock for Hall screen
+  setInterval(() => {
+    const clock = document.getElementById('clock');
+    if (clock) {
+      clock.textContent = new Date().toLocaleTimeString('es-AR', { hour12: false });
+    }
+  }, 1000);
 }
 
 function handleRoute() {
